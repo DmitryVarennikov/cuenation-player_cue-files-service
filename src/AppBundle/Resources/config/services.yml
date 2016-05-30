@@ -1,0 +1,6 @@
+services:
+    app.service.cuenation.cue_categories:
+        class: AppBundle\Service\CueNation\CueCategories
+        arguments:
+            - "%kernel.environment%"
+            - "@app.client"

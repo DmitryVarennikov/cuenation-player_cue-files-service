@@ -8,4 +8,5 @@ services:
         class: GuzzleHttp\Client
         arguments:
             - {"base_uri": "%cuenation_api_base_uri%"}
-
+    league.fractal.manager:
+        class: League\Fractal\Manager

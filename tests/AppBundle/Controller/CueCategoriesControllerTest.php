@@ -4,6 +4,9 @@ namespace AppBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
+/**
+ * @group functional
+ */
 class CueCategoriesControllerTest extends WebTestCase
 {
 
@@ -22,6 +25,7 @@ class CueCategoriesControllerTest extends WebTestCase
 
         $content = json_decode($response->getContent(), true);
         $this->assertArrayHasKey('ETag', $content['meta']);
+        $this->assertNotEmpty($content['data']);
     }
 
 }

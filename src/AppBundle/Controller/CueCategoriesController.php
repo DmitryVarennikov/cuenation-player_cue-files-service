@@ -2,9 +2,11 @@
 
 namespace AppBundle\Controller;
 
+use AppBundle\Presentation\Response;
 use function GuzzleHttp\Psr7\parse_header;
 use League\Fractal\Manager;
 use League\Fractal\Resource\Collection;
+use League\Fractal\Resource\ResourceInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
@@ -23,27 +25,28 @@ class CueCategoriesController extends Controller
     public function indexAction()
     {
         $cueCategoriesService = $this->get('app.service.cuenation.cue_categories');
-        $response = $cueCategoriesService->get();
+        $httpResponse = $cueCategoriesService->get();
 
-        $content = json_decode($response->getBody()->getContents(), true);
-        if (isset($content['_embedded']['cueCategories'])) {
-            $resource = new Collection(
-                $content['_embedded']['cueCategories'], function (array $cueCategory) {
-                return $cueCategory;
-            }, 'cueCategories'
-            );
 
-            if (!empty($response->getHeader('ETag'))) {
-                $resource->setMetaValue('ETag', $response->getHeader('ETag')[0]);
+        $fractalManager = $this->get('league.fractal.manager');
+        $response = new class($fractalManager) extends Response
+        {
+
+            protected function createResource() : ResourceInterface
+            {
+                $content = $this->getContent();
+                $eTag = $this->getETag();
+
+                $resource = new Collection($content['_embedded']['cueCategories'] ?? null, [$this, 'noneTransformer']);
+                if ($eTag) {
+                    $resource->setMetaValue('ETag', $eTag);
+                }
+
+                return $resource;
             }
+        };
 
-            $fractal = new Manager();
-            $output = $fractal->createData($resource)->toArray();
-        } else {
-            $output = [];
-        }
-
-        return new JsonResponse($output);
+        return $response->return($httpResponse);
     }
 
 }

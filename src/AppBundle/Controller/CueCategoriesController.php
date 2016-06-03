@@ -11,6 +11,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @Route("/cue-categories")
@@ -21,11 +22,15 @@ class CueCategoriesController extends Controller
     /**
      * @Route("/", name="get_cue-categories")
      * @Method({"GET"})
+     * @param Request $request
+     * @return mixed
      */
-    public function indexAction()
+    public function indexAction(Request $request)
     {
         $cueCategoriesService = $this->get('app.service.cuenation.cue_categories');
-        $httpResponse = $cueCategoriesService->get();
+
+        $eTag = count($request->getETags()) ? $request->getETags()[0] : null;
+        $httpResponse = $cueCategoriesService->get($eTag);
 
 
         $fractalManager = $this->get('league.fractal.manager');
@@ -37,7 +42,10 @@ class CueCategoriesController extends Controller
                 $content = $this->getContent();
                 $eTag = $this->getETag();
 
-                $resource = new Collection($content['_embedded']['cueCategories'] ?? null, [$this, 'noneTransformer']);
+                // @TODO: 1. default `null` data is not working, `Scope::executeResourceTransformers` tries to iterate
+                // over data in case of `Collection` resource
+                // @TODO: 2. `null` transformer is not working either for the same reason
+                $resource = new Collection($content['_embedded']['cueCategories'] ?? [], [$this, 'noneTransformer']);
                 if ($eTag) {
                     $resource->setMetaValue('ETag', $eTag);
                 }

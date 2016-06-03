@@ -16,4 +16,29 @@ Gateway API.
 
 # API
 
-* `GET /cue-categories` -- return all cue-categories
+### Cue categories
+Return all cue-categories
+
+**Request**
+
+`GET /cue-categories`
+
+**Response**
+
+**NOTE** `If-None-Match` header is present `data` section is empty
+
+```
+{
+    "data": [
+        {
+            "id": "53f24f73cb88814e672ce4f0",
+            "name": "#goldrushRADIO",
+            "host": "with Ben Gold",
+            "link": "http://cuenation.com/?page=cues&folder=goldrushradio"
+        }
+    ],
+    "meta": {
+        "ETag": "this is a test ETag"
+    }
+}
+```

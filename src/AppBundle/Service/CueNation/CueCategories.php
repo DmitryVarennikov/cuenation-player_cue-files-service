@@ -4,24 +4,25 @@ declare(strict_types = 1);
 
 namespace AppBundle\Service\CueNation;
 
+use AppBundle\EnvironmentAware;
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Psr7;
 
 class CueCategories
 {
 
-    private $environment;
+    use EnvironmentAware;
+
     private $httpClient;
 
-    public function __construct(string $environment, HttpClient $httpClient)
+    public function __construct(HttpClient $httpClient)
     {
-        $this->environment = $environment;
         $this->httpClient = $httpClient;
     }
 
     public function get(string $eTag = null): Psr7\Response
     {
-        if ('test' === $this->environment) {
+        if ($this->isTestEnvironment()) {
             return $this->testGet($eTag);
         }
 
@@ -37,6 +38,11 @@ class CueCategories
     }
 
     private function testGet(string $eTag = null): Psr7\Response
+    {
+        return $eTag === null ? $this->testGet200() : $this->testGet304();
+    }
+
+    private function testGet200()
     {
         $headers = [
             'Content-Type' => 'application/hal+json',
@@ -63,6 +69,16 @@ class CueCategories
         ];
 
         return new Psr7\Response(200, $headers, json_encode($body));
+    }
+
+    private function testGet304()
+    {
+        $headers = [
+            'Content-Type' => 'application/hal+json',
+            'ETag' => 'this is a test ETag',
+        ];
+
+        return new Psr7\Response(304, $headers);
     }
 
 }
